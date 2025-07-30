@@ -1,0 +1,55 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <title>대시보드</title>
+  <style>
+    table { border-collapse: collapse; width: 100%; margin-top: 20px; }
+    th, td { border: 1px solid #ddd; padding: 8px; text-align: center; }
+    th { background-color: #f2f2f2; }
+  </style>
+</head>
+<body>
+  <h1>안녕하세요, {{ userid }}님!</h1>
+  <p>현재 잔액: {{ balance }}원</p>
+  {% with messages = get_flashed_messages() %}
+    {% if messages %}
+      <ul>
+      {% for msg in messages %}
+        <li>{{ msg }}</li>
+      {% endfor %}
+      </ul>
+    {% endif %}
+  {% endwith %}
+  <form method="post">
+    <label>금액: <input type="number" name="amount" step="0.01" required></label><br>
+    <button type="submit" name="action" value="deposit">입금</button>
+    <button type="submit" name="action" value="withdraw">출금</button>
+  </form>
+  <!-- 거래 내역 테이블 -->
+  {% if history %}
+  <table>
+    <thead>
+      <tr>
+        <th>날짜</th>
+        <th>입금 금액</th>
+        <th>출금 금액</th>
+        <th>현재 잔액</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for tx in history %}
+      <tr>
+        <td>{{ tx.date }}</td>
+        <td>{{ tx.deposit|intcomma }}원</td>
+        <td>{{ tx.withdraw|intcomma }}원</td>
+        <td>{{ tx.balance|intcomma }}원</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {% endif %}
+  <br>
+  <a href="{{ url_for('logout') }}">로그아웃</a>
+</body>
+</html>

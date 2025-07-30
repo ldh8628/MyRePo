@@ -1,0 +1,24 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <title>은행 로그인</title>
+</head>
+<body>
+  <h1>로그인</h1>
+  {% with messages = get_flashed_messages() %}
+    {% if messages %}
+      <ul>
+      {% for msg in messages %}
+        <li>{{ msg }}</li>
+      {% endfor %}
+      </ul>
+    {% endif %}
+  {% endwith %}
+  <form method="post">
+    <label>아이디: <input type="text" name="userid" required></label><br>
+    <label>비밀번호: <input type="password" name="password" required></label><br>
+    <button type="submit">로그인</button>
+  </form>
+</body>
+</html>
