@@ -1,0 +1,34 @@
+Checkpoint: ./ckpts_draem_hybrid_split\draem_hybrid_epoch_9.pth
+
+[VAL] AUROC=1.000000
+[VAL] Best threshold (Youden)=0.888729
+Confusion Matrix (rows:true, cols:pred) [0=normal,1=defect]:
+[[206   0]
+ [  0  22]]
+
+Classification report:
+              precision    recall  f1-score   support
+
+      normal     1.0000    1.0000    1.0000       206
+      defect     1.0000    1.0000    1.0000        22
+
+    accuracy                         1.0000       228
+   macro avg     1.0000    1.0000    1.0000       228
+weighted avg     1.0000    1.0000    1.0000       228
+
+
+[TEST] AUROC=1.000000  (threshold from VAL)
+Confusion Matrix (rows:true, cols:pred) [0=normal,1=defect]:
+[[208   0]
+ [  0  52]]
+
+Classification report:
+              precision    recall  f1-score   support
+
+      normal     1.0000    1.0000    1.0000       208
+      defect     1.0000    1.0000    1.0000        52
+
+    accuracy                         1.0000       260
+   macro avg     1.0000    1.0000    1.0000       260
+weighted avg     1.0000    1.0000    1.0000       260
+

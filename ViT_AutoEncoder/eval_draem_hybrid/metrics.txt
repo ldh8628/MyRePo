@@ -1,0 +1,16 @@
+Image-level AUROC: 1.000000
+Threshold (median): 0.012144
+
+Confusion Matrix (rows:true, cols:pred) [0=normal,1=defect]:
+[[692 686]
+ [  0  74]]
+
+Classification report:
+              precision    recall  f1-score   support
+
+      normal     1.0000    0.5022    0.6686      1378
+      defect     0.0974    1.0000    0.1775        74
+
+    accuracy                         0.5275      1452
+   macro avg     0.5487    0.7511    0.4230      1452
+weighted avg     0.9540    0.5275    0.6436      1452
