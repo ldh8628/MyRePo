@@ -1,0 +1,60 @@
+# FoundPose .gitignore
+# Large data, outputs, and model checkpoints should NOT be committed
+
+# External dependencies (use git submodule or clone manually — see .gitmodules / MY_NOTES.md)
+external/bop_toolkit/
+
+# BOP Datasets (large)
+data/
+datasets/
+
+# Generated outputs (templates, object representations, inference results)
+outputs/
+templates/
+
+# Rendering output formats
+*.exr
+
+# Model checkpoints and weights
+*.pth
+*.pkl
+*.pt
+*.bin
+*.ckpt
+
+# Python cache
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+
+# Virtual environment
+venv/
+env/
+.env
+
+# Jupyter
+.ipynb_checkpoints/
+*.ipynb
+
+# Logs
+*.log
+wandb/
+logs/
+runs/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDEs
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Temp files
+tmp/
+temp/
+*.tmp

@@ -1,0 +1,15 @@
+{
+  "gen_templates_opts": {
+    "version": "v1",
+    "object_dataset": "lmo",
+    "object_lids": [1],
+    "num_viewspheres": 1,
+    "min_num_viewpoints": 57,
+    "num_inplane_rotations": 14,
+    "images_per_view": 1,
+    "max_num_triangles": 20000,
+    "ssaa_factor": 4.0,
+    "crop": true,
+    "crop_size": [420, 420]
+  }
+}
