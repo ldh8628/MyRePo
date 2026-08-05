@@ -1,0 +1,41 @@
+# Inputs and generated outputs
+/data/
+/datasets/
+/input/
+/inputs/
+/outputs/
+/output/
+/external/
+
+# Models, checkpoints, reconstructed meshes and experiment products
+*.pth
+*.pt
+*.ckpt
+*.onnx
+*.safetensors
+*.ply
+*.obj
+*.stl
+*.npz
+*.npy
+*.csv
+*.html
+*.log
+
+# Python/editor state
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+.idea/
+.vscode/
+.DS_Store
+
+# Local secrets and environment overrides
+.env
+.env.*
+!.env.example
+*.pem
+*.key
