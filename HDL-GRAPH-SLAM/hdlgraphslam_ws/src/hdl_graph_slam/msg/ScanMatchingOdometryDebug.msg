@@ -1,0 +1,12 @@
+std_msgs/Header header
+
+uint32 input_point_count
+uint32 downsampled_point_count
+
+float32 registration_time_ms
+float32 callback_time_ms
+uint64 odom_count
+
+bool registration_triggered
+bool has_converged
+float32 matching_error

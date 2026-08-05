@@ -1,0 +1,27 @@
+sam6d_inference_node:
+  ros__parameters:
+    sam6d_root: "sam6d_master/SAM-6D"
+    cad_path: "assets/object_mm.ply"
+    camera_json: "assets/camera.json"
+    template_dir: "assets/templates"
+    output_dir: "runtime_output"
+    segmentor_model: "fastsam"
+    stability_score_thresh: 0.97
+    det_score_thresh: 0.2
+    top_k_for_pem: 3
+    max_proposals: 50
+    no_vis: false
+    confidence.pose_score_min: 0.3
+    confidence.ism_score_min: 0.3
+    stabilize.enabled: true
+    stabilize.ema_alpha: 0.6
+    stabilize.jump_trans_mm: 50.0
+    stabilize.jump_rot_deg: 30.0
+    stabilize.jump_max_hold: 3
+    deterministic.enabled: true
+    deterministic.seed: 1
+    rgb_topic: "/camera/rgb/image_raw"
+    depth_topic: "/camera/depth/image_raw"
+    sync_queue_size: 5
+    sync_slop: 0.05
+    visualization.show_imshow: false

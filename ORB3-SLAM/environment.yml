@@ -1,0 +1,32 @@
+name: orbslam3
+channels:
+  - conda-forge
+  - robostack-humble
+dependencies:
+  - python=3.11
+  - pip
+  - git
+  - cmake
+  - ninja
+  - make
+  - cxx-compiler
+  - pkg-config
+  - colcon-common-extensions
+  - ros-humble-ros-base
+  - ros-humble-cv-bridge
+  - ros-humble-image-transport
+  - opencv
+  - eigen=3.4
+  - suitesparse
+  - libboost-devel
+  - glew
+  - libgl-devel
+  - libopengl-devel
+  - libegl-devel
+  - epoxy
+  - pangolin-opengl
+  - xorg-libx11
+  - xorg-libxrandr
+  - xorg-libxinerama
+  - xorg-libxcursor
+  - xorg-libxi

@@ -1,0 +1,22 @@
+name: sam6d-runtime
+channels: [pytorch, nvidia, conda-forge]
+dependencies:
+  - python=3.10
+  - colcon-common-extensions
+  - pip
+  - pip:
+      - torch==2.0.0
+      - torchvision==0.15.1
+      - opencv-python
+      - imageio
+      - distinctipy
+      - scipy
+      - omegaconf
+      - hydra-core
+      - ruamel.yaml
+      - trimesh==4.0.8
+      - ultralytics==8.0.135
+      - pytorch-lightning==1.8.1
+      - pycocotools
+      - timm
+      - gorilla-core==0.2.7.8

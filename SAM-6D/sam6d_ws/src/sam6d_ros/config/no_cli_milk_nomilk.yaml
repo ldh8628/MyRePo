@@ -1,0 +1,76 @@
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+# 검증용 config — 데이터셋: SLAM_with_milk_nomilk (실제 data/milk_nomilk_bag)
+#   목적: 문제 A (no-object / False Positive) 검증
+#   no_cli_milk.yaml 과 동일하되 bag.path / output_dir 만 교체.
+#   실행: ros2 launch sam6d_ros sam6d_inference.launch.py \
+#           config:=src/sam6d_ros/config/no_cli_milk_nomilk.yaml
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+bag:
+  path: data/milk_nomilk_bag      # 실제 경로 (bag_0.db3)
+  play: true
+  clock: true
+  rate: 1.0
+  start_delay: 60.0               # 모델 로드 대기 (no_cli_milk 와 동일)
+
+sam6d_inference_node:
+  ros__parameters:
+    sam6d_root: "sam6d_master/SAM-6D"
+    cad_path: "data/cad/Milk_color_uv_vertexcolor_195mm.ply"
+    camera_json: "src/sam6d_ros/config/d455f_camera.json"
+    template_dir: "sam6d_master/SAM-6D/Data/custom/Milk_scaled_195mm/templates"
+    output_dir: "outputs/validation/SLAM_with_milk_nomilk/_run"
+
+    segmentor_model: "fastsam"
+    stability_score_thresh: 0.97
+    det_score_thresh: 0.2
+    top_k_for_pem: 5
+    max_proposals: 50
+    # 시각화 이미지는 검증 단계 도구(make_visualizations.py)에서 생성하므로 노드는 끔.
+    no_vis: true
+
+    # ── 신뢰성 개선 (FR-1~9) — 운영값(on) ─────────────────────────────
+    confidence:
+      pose_score_min: 0.3
+      ism_score_min:  0.3
+    stabilize:
+      enabled:       true
+      ema_alpha:     0.6
+      jump_trans_mm: 50.0
+      jump_rot_deg:  30.0
+      jump_max_hold: 3
+    deterministic:
+      enabled: true
+      seed:    1
+    debug_log:
+      enabled: true
+      dir:     ""                  # 빈 값 → output_dir/debug = outputs/validation/SLAM_with_milk_nomilk/_run/debug
+
+    # ── Depth/Pose Consistency Secondary Gate (Phase 0) ──
+    # score threshold 불변. shadow = 평가·로깅만(발행 불변). hard 전환은 검증 후.
+    depth_gate:
+      mode:          shadow        # off | shadow | hard
+      tol_mm:        40.0
+      agree_min:     0.5
+      vr_min:        0.3
+      err_max:       100.0
+      sample_points: 2000
+      depth_scale:   1.0           # depth.png(16UC1) 값×scale = mm
+    workspace:
+      enabled: true
+      z_min:   100.0
+      z_max:   1500.0
+      xy_max:  800.0
+
+    rgb_topic: "/camera/camera/color/image_raw"
+    depth_topic: "/camera/camera/aligned_depth_to_color/image_raw"
+    sync_queue_size: 30
+    sync_slop: 0.08
+
+    result_image_topic: "/sam6d_nomilk/result_image"
+    pose_6dof_topic: "/sam6d_nomilk/pose_6dof"
+
+    visualization:
+      show_imshow: false
+
+    benchmark:
+      skip_file_save: false        # 프레임별 detection_pem.json(R/bbox/mask) 저장 필요

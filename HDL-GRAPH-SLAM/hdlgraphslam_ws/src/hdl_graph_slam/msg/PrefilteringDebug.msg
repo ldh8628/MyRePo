@@ -1,0 +1,10 @@
+std_msgs/Header header
+
+uint32 input_point_count
+uint32 transformed_point_count
+uint32 distance_filtered_point_count
+uint32 downsampled_point_count
+uint32 output_point_count
+
+float32 callback_time_ms
+uint64 output_count

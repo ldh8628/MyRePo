@@ -1,0 +1,12 @@
+hdlgraphslam_ws/build/
+hdlgraphslam_ws/install/
+hdlgraphslam_ws/log/
+hdlgraphslam_ws/output/
+hdlgraphslam_ws/data/
+*.bag
+*.db3
+*.mcap
+*.pcd
+*.ply
+__pycache__/
+*.pyc

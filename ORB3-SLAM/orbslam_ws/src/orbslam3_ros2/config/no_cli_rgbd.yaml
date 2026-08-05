@@ -1,0 +1,50 @@
+dataset: no_cli_rgbd_verify
+
+bag:
+  path: data/rgbd_bag
+  play: true
+  clock: true
+  rate: 1.0
+  start_delay: 2.0
+
+orbslam3:
+  vocabulary_path: src/ORB_SLAM3/Vocabulary/ORBvoc.txt
+  settings_path: data/orbslam3_d455f_640x480_rgbd.yaml
+
+topics:
+  rgb: /camera/camera/color/image_raw
+  depth: /camera/camera/aligned_depth_to_color/image_raw
+
+frames:
+  world: map
+  camera: camera_color_optical_frame
+
+runtime:
+  sync_queue_size: 60
+  publish_map_points: true
+  map_points_topic: /orbslam3/map_points
+  map_points_publish_period_sec: 1.0
+  save_map_points_on_shutdown: true
+
+dense_map:
+  enabled: true
+  topic: /orbslam3/dense_map
+  publish_period_sec: 2.0
+  frame_stride: 5
+  pixel_stride: 4
+  voxel_size: 0.03
+  min_depth_m: 0.15
+  max_depth_m: 6.0
+  max_points: 2000000
+  include_color: true
+  save_pcd: true
+  pcd_output_path: orbslam3_dense_map.pcd
+  save_ply: false
+  ply_output_path: orbslam3_dense_map.ply
+
+output:
+  dir: output/orbslam3_rgbd_verify
+  map_points_path: orbslam3_map_points.pcd
+
+visualization:
+  enabled: false

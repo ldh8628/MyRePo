@@ -1,0 +1,13 @@
+input:
+  rgb_topic: /cam_1/aligned/color/image_raw
+  depth_topic: /cam_1/aligned/depth/image_rect_raw
+  camera_intrinsics_json: /path/to/camera_intrinsics.json
+  frame_id: cam_1_depth_optical_frame
+
+sync:
+  approx_sync: true
+  max_interval_sec: 0.02
+
+output:
+  map_topic: /rtabmap/cloud_map
+  pose_topic: /rtabmap/pose
