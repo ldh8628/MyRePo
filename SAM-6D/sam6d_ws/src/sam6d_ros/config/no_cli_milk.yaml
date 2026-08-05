@@ -1,0 +1,53 @@
+bag:
+  path: data/rgbd_bag
+  play: true
+  clock: true
+  rate: 1.0
+  start_delay: 60.0
+
+sam6d_inference_node:
+  ros__parameters:
+    sam6d_root: "sam6d_master/SAM-6D"
+    cad_path: "data/cad/Milk_color_uv_vertexcolor_195mm.ply"
+    camera_json: "src/sam6d_ros/config/d455f_camera.json"
+    template_dir: "sam6d_master/SAM-6D/Data/custom/Milk_scaled_195mm/templates"
+    output_dir: "output/sam6d_milk_verify"
+
+    segmentor_model: "fastsam"
+    stability_score_thresh: 0.97
+    det_score_thresh: 0.2
+    top_k_for_pem: 5
+    max_proposals: 50
+    no_vis: true
+
+    # ── 신뢰성 개선 (FR-1~9) ─────────────────────────────────────────
+    # 임계값은 baseline(output/sam6d_milk_verify) 측정 후 조정 필요(초기 [ASSUMPTION] 값).
+    confidence:
+      pose_score_min: 0.3   # PEM pred_pose_score floor (no-object 거부)
+      ism_score_min:  0.3   # ISM final_score floor
+    stabilize:
+      enabled:       true
+      ema_alpha:     0.6    # 직전 결과 가중치(0=평활 없음, 1=최대 평활)
+      jump_trans_mm: 50.0   # 위치 점프 임계
+      jump_rot_deg:  30.0   # 회전 점프 임계
+      jump_max_hold: 3      # 연속 점프 N회 후 새 값 수용
+    deterministic:
+      enabled: true
+      seed:    1
+    debug_log:
+      enabled: true
+      dir:     ""           # 빈 값이면 output_dir/debug
+
+    rgb_topic: "/camera/camera/color/image_raw"
+    depth_topic: "/camera/camera/aligned_depth_to_color/image_raw"
+    sync_queue_size: 30
+    sync_slop: 0.08
+
+    result_image_topic: "/sam6d_milk_verify/result_image"
+    pose_6dof_topic: "/sam6d_milk_verify/pose_6dof"
+
+    visualization:
+      show_imshow: false
+
+    benchmark:
+      skip_file_save: false

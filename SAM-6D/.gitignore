@@ -1,0 +1,15 @@
+sam6d_ws/build/
+sam6d_ws/install/
+sam6d_ws/log/
+sam6d_ws/output/
+sam6d_ws/data/
+sam6d_ws/sam6d_master/
+sam6d_ws/assets/
+sam6d_ws/runtime_output/
+*.pt
+*.pth
+*.ckpt
+*.onnx
+*.ply
+__pycache__/
+*.pyc

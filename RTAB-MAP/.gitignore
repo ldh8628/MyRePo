@@ -1,0 +1,13 @@
+rtabmap_ws/build/
+rtabmap_ws/install/
+rtabmap_ws/log/
+rtabmap_ws/output/
+rtabmap_ws/data/
+*.bag
+*.db3
+*.mcap
+*.db
+*.pcd
+*.ply
+__pycache__/
+*.pyc

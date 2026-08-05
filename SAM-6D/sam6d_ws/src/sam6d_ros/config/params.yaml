@@ -1,0 +1,136 @@
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+# SAM-6D 통합 설정 파일
+#
+# 사용 대상
+#   rendering.py         : ros__parameters 섹션에서 공통 + 렌더 파라미터 읽기
+#   sam6d_inference_node : ROS2 런치 시 ros__parameters 자동 로드
+#
+# 경로 규칙
+#   절대 경로 (/home/...)  : 그대로 사용
+#   상대 경로 (foo/bar...) : 현재 SAM-6D workspace 기준으로 해석
+#   ~ 포함 경로           : os.path.expanduser 처리
+#
+# ROS2 YAML 형식: 최상위 키는 반드시 노드이름 또는 /**이어야 하며
+#                 하위에 ros__parameters: 가 와야 함
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+sam6d_inference_node:
+  ros__parameters:
+
+    # ── SAM-6D 소스 루트 ───────────────────────────────────────────────
+    sam6d_root: "sam6d_master/SAM-6D"
+
+    # ── 렌더링 입력 경로 ───────────────────────────────────────────────
+    # rendering.py는 cad_input_dir 안의 모든 .ply를 렌더링한다.
+    cad_input_dir: "assets/cad"
+    custom_output_root: "sam6d_master/SAM-6D/Data/custom"
+
+    # ── 추론 입력 데이터 경로 ─────────────────────────────────────────
+    cad_path:    "sam6d_master/SAM-6D/Data/Example/obj_000005.ply"
+    camera_json: "sam6d_master/SAM-6D/Data/Example/camera.json"
+
+    # ── 출력 경로 ──────────────────────────────────────────────────────
+    # template_dir : rendering.py 가 생성하는 templates 폴더
+    template_dir: "sam6d_master/SAM-6D/Data/Example/outputs_obj5/templates"
+    output_dir:   "sam6d_master/SAM-6D/Data/Example/outputs_obj5"
+
+    # ── 렌더링 파라미터 (rendering.py 전용) ───────────────────────────
+    normalize:  true
+    colorize:   false
+    base_color: 0.05
+    render_use_only_cpu: true
+
+    # ── 추론 파라미터 ─────────────────────────────────────────────────
+    segmentor_model:        "fastsam"  # fastsam | sam
+    stability_score_thresh: 0.97
+    det_score_thresh:       0.2
+    top_k_for_pem:          3
+    # FastSAM proposals are capped before DINOv2 matching.
+    # 50 matches the validated batch benchmark; 0 disables the cap.
+    max_proposals:          50
+    # 성능 모드: ISM/PEM 시각화 이미지 생성을 생략한다.
+    no_vis:                 false
+
+    # ── 신뢰성 개선 (FR-1~9) ──────────────────────────────────────────
+    # 임계값은 baseline 측정 후 조정 필요(초기 [ASSUMPTION] 값).
+    # 모든 항목 미설정 시 코드 기본값(off/0.0)으로 기존 동작과 동일.
+    confidence:
+      pose_score_min: 0.3   # PEM pred_pose_score floor (no-object 거부)
+      ism_score_min:  0.3   # ISM final_score floor
+    stabilize:
+      enabled:       true
+      ema_alpha:     0.6    # 직전 결과 가중치(0=평활 없음, 1=최대 평활)
+      jump_trans_mm: 50.0   # 위치 점프 임계
+      jump_rot_deg:  30.0   # 회전 점프 임계
+      jump_max_hold: 3      # 연속 점프 N회 후 새 값 수용
+    deterministic:
+      enabled: true
+      seed:    1
+    debug_log:
+      enabled: true
+      dir:     ""           # 빈 값이면 output_dir/debug
+
+    # ── Depth/Pose Consistency Secondary Gate (Phase 0) ──
+    # score threshold 불변. shadow = 평가·로깅만(발행 불변). workspace 박스는 객체별이라
+    # 일반 예제(obj5)에서는 비활성; milk 시나리오 config 에서 활성화한다.
+    depth_gate:
+      mode:          shadow        # off | shadow | hard
+      tol_mm:        40.0
+      agree_min:     0.5
+      vr_min:        0.3
+      err_max:       100.0
+      sample_points: 2000
+      depth_scale:   1.0
+    workspace:
+      enabled: false
+      z_min:   100.0
+      z_max:   1500.0
+      xy_max:  800.0
+
+    # ── 실시간 이미지 토픽 입력 ───────────────────────────────────────
+    rgb_topic:       "/camera/rgb/image_raw"
+    depth_topic:     "/camera/depth/image_raw"
+    sync_queue_size: 5
+    sync_slop:       0.05
+    result_image_topic: "/sam6d_inference/result_image"
+    pose_6dof_topic: "/sam6d_results/pose_6dof"
+
+    # ── 시각화 설정 ───────────────────────────────────────────────────
+    visualization:
+      show_imshow: false
+
+    # ── 성능 측정 설정 ───────────────────────────────────────────────
+    # true: live_input/rgb.png, depth.png를 재사용하여 토픽 프레임 파일 저장 비용을 제외
+    #       먼저 false로 1회 실행해 live_input 파일을 생성한 뒤 true로 전환하세요.
+    benchmark:
+      skip_file_save: false
+
+pose_eval_node:
+  ros__parameters:
+    # Keep this node separate from inference. It consumes the latest RGB/depth
+    # cache when a PoseArray arrives and never modifies the SAM-6D pipeline.
+    model_path:  "sam6d_master/SAM-6D/Data/Example/obj_000005.ply"
+    camera_json: "sam6d_master/SAM-6D/Data/Example/camera.json"
+
+    # PLY unit correction. Use 0.001 if check_cad.py shows the model is in mm.
+    model_scale: 0.001
+    # If > 0, overrides camera_json depth_scale. 16UC1 RealSense depth usually
+    # needs 0.001; 32FC1 meter depth is treated as meters internally.
+    depth_scale: 0.001
+    n_sample_points: 3000
+
+    rgb_topic:     "/camera/rgb/image_raw"
+    depth_topic:   "/camera/depth/image_raw"
+    pose_topic:    "/sam6d_inference/poses"
+    overlay_topic: "/sam6d_eval/overlay"
+    state_topic:   "/sam6d_eval/state"
+
+    output_dir: "runtime_output/sam6d_eval_debug"
+    save_states: ["CONTRADICTED", "SUSPECT", "DEPTH_UNRELIABLE", "OCCLUDED"]
+    save_cooldown_sec: 2.0
+
+    splat_radius: 4
+    axis_length_m: 0.0
+    draw_bbox: true
+    enable_depth_check: true
+    publish_projection_only_without_depth: true

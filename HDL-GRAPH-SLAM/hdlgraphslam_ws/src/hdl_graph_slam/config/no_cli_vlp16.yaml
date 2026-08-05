@@ -1,0 +1,10 @@
+bag:
+  path: data/vlp16_bag
+  rate: 0.5
+
+hdl_graph_slam:
+  launch_file: hdl_graph_slam_501.launch.py
+  raw_points_qos: reliable
+
+output:
+  dir: auto

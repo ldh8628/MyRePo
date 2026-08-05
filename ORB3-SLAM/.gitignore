@@ -1,0 +1,14 @@
+orbslam_ws/build/
+orbslam_ws/install/
+orbslam_ws/log/
+orbslam_ws/output/
+orbslam_ws/data/
+orbslam_ws/src/ORB_SLAM3/Vocabulary/
+orbslam_ws/src/ORB_SLAM3/lib/
+*.bag
+*.db3
+*.mcap
+*.pcd
+*.ply
+__pycache__/
+*.pyc
