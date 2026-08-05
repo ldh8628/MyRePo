@@ -1,59 +1,50 @@
-# Unsupervised Deep Image Stitching: Reconstructing Stitched Features to Images (UDIS)
-<p align="center">Lang Nie*, Chunyu Lin*, Kang Liao*, Shuaicheng Liu`, Yao Zhao*</p>
-<p align="center">* Institute of Information Science, Beijing Jiaotong University</p>
-<p align="center">` School of Information and Communication Engineering, University of Electronic Science and Technology of China</p>
+# DL_stitch
 
-![image](https://github.com/nie-lang/UnsupervisedDeepImageStitching/blob/main/network.jpg)
+이 폴더는 Nie et al.의 **Unsupervised Deep Image Stitching(UDIS)** 공개 구현을 보관한 TensorFlow 1.x 기반 2단계 영상 스티칭 실험이다. 원본 프로젝트와 논문은 [nie-lang/UnsupervisedDeepImageStitching](https://github.com/nie-lang/UnsupervisedDeepImageStitching), [IEEE TIP 논문](https://doi.org/10.1109/TIP.2021.3092828)에서 확인할 수 있다. 이 README는 원문을 복제한 것이 아니라 MyRePo에 실제로 포함된 파일과 실행 제약을 설명한다.
 
-## 🚩Recommendation
-If you are interested in image stitching, we sincerely recommend you try our latest work -- [UDIS++](https://github.com/nie-lang/UDIS2)(ICCV2023, with better capability to handle parallax).
+원 구현의 저자는 Lang Nie, Chunyu Lin, Kang Liao, Shuaicheng Liu, Yao Zhao이다. 이 폴더에는 별도 최상위 `LICENSE`가 추적돼 있지 않으므로 재배포·상업적 사용 전에는 반드시 upstream의 최신 이용 조건을 확인해야 한다.
 
+## 포함 내용
 
-## Dataset (UDIS-D)
-The details of the dataset can be found in our paper. ([arXiv](https://arxiv.org/pdf/2106.12859.pdf), [IEEE Xplore](https://ieeexplore.ieee.org/stamp/stamp.jsp?tp=&arnumber=9472883))
+- `ImageAlignment/`: homography를 추정하고 두 입력을 coarse alignment하는 1단계 코드
+- `ImageReconstruction/`: 1단계의 warp와 mask를 받아 최종 영상을 복원하는 2단계 코드
+- `ImageAlignment/Codes/data/testing/input1`, `input2`: 번호가 대응하는 테스트 영상 각 1,105장
+- `ImageAlignment/Codes/checkpoints_homo`, `ImageReconstruction/Codes/checkpoints`: checkpoint 메타데이터와 index 파일
 
-We release our testing results with the proposed dataset together. One can download it at [Google Drive](https://drive.google.com/drive/folders/1kC7KAULd5mZsqaWnY3-rSbQLaZ7LujTY?usp=sharing) or [Baidu Cloud](https://pan.baidu.com/s/13KZ29e487datgtMgmb9laQ)(Extraction code: 1234).
+원본 구현이 명시한 환경은 Python 3.6, NumPy 1.18.1, TensorFlow 1.13.1, TensorLayer 1.8.0이다. 최신 TensorFlow/Python에서의 호환성은 보장되지 않는다.
 
-## Compared with ours
-You can try the testing set of the proposed dataset with your own algorithm. And our results in the testing set are also provided with the testing set. 
+## 입력과 실행
 
-## Code
-#### Requirement
-* python 3.6
-* numpy 1.18.1
-* tensorflow 1.13.1
-* tensorlayer 1.8.0
+상대경로를 사용하므로 각 `Codes` 디렉터리에서 실행한다. GPU 번호와 입력 루트는 먼저 각 단계의 `constant.py`에서 환경에 맞게 수정해야 한다.
 
-#### How to run it
-Due to the memory limitation of our GPU, we implement this unsupervised solution in two stages:
-* Stage 1 (unsupervised coarse image alignment): please refer to [ImageAlignment/ImageAlignment.md](https://github.com/nie-lang/UnsupervisedDeepImageStitching/blob/main/ImageAlignment/ImageAlignment.md).
-* Stage 2 (unsupervised image reconstruction): please refer to [ImageReconstruction/ImageReconstruction.md](https://github.com/nie-lang/UnsupervisedDeepImageStitching/blob/main/ImageReconstruction/ImageReconstruction.md).
+현재 Git의 checkpoint에는 TensorFlow 변수값인 `.data-*` shard가 빠져 있으므로 실행 전에 완전한 pretrained checkpoint를 받아야 한다.
 
-#### For windows system
-For windows OS users, you have to change '/' to '\\\\' in 'line 71 of ImageAlignment/Codes/utils.py' and 'line 48 of ImageReconstruction/Codes/utils.py'.
+- [공식 alignment checkpoint](https://drive.google.com/drive/folders/10SCpFs0J05korpK0sWeSUVGtcpUdPy1e?usp=sharing)를 `ImageAlignment/Codes/checkpoints_homo/`에 배치한다.
+- [공식 reconstruction checkpoint](https://drive.google.com/drive/folders/1ogfVFveLjvbnf_XRKAMjG5WaUzxz_zrb?usp=sharing)를 `ImageReconstruction/Codes/checkpoints/`에 배치한다.
+- 다른 위치에 둘 경우 각 `inference.py`의 restore 경로를 함께 수정한다.
 
+```bash
+cd DL_stitch/ImageAlignment/Codes
 
-## Experimental results on robustness
-By resizing the input images to different resolutions, we simulation the change of feature quantity to compare ours with other methods in robustness. The results can be available in https://drive.google.com/drive/folders/1URFKTiUxaZ8i6pcHIKhxVTf-LkTNnXpK?usp=sharing.
+# 정량 평가
+python inference.py
 
-Note: Since the RANSAC algorithm randomly selects the sample points, and the feature (SIFT) detection is not strictly consistent each time, different tests on the same image may differ. But the overall performance should be close to the results reported in our experiments.
+# 2단계 입력용 warp와 mask 생성
+python output_inference.py
 
-## Meta
-NIE Lang -- nielang@bjtu.edu.cn
-```
-@ARTICLE{9472883,
-  author={Nie, Lang and Lin, Chunyu and Liao, Kang and Liu, Shuaicheng and Zhao, Yao},
-  journal={IEEE Transactions on Image Processing}, 
-  title={Unsupervised Deep Image Stitching: Reconstructing Stitched Features to Images}, 
-  year={2021},
-  volume={30},
-  number={},
-  pages={6184-6197},
-  doi={10.1109/TIP.2021.3092828}}
+cd ../../ImageReconstruction/Codes
+python inference.py
 ```
 
-## References
-[1] L. Nie, C. Lin, K. Liao, M. Liu, and Y. Zhao, “A view-free image stitching network based on global homography,” Journal of Visual Communication and Image Representation, p. 102950, 2020.  
-[2] L. Nie, C. Lin, K. Liao, and Y. Zhao, “Learning edge-preserved image stitching from large-baseline deep homographyn,” arXiv preprint arXiv:2012.06194, 2020.  
-[3] T. Nguyen, S. W. Chen, S. S. Shivakumar, C. J. Taylor, and V. Kumar. Unsupervised deep homography: A fast and robust homography estimation model. IEEE Robotics and Automation Letters, 3(3):2346–2353, 2018.  
-[4] J. Zhang, C. Wang, S. Liu, L. Jia, N. Ye, J. Wang, J. Zhou, and J. Sun, “Content-aware unsupervised deep homography estimation,” in European Conference on Computer Vision, pp. 653–669, Springer, 2020.  
+학습이 필요하면 1단계에서 `python train_H.py`, 2단계에서 `python train.py`를 실행한다. 합성 MS-COCO 입력 생성 절차는 `ImageAlignment/ImageAlignment.md`, 재구성 입력과 VGG19 준비 절차는 `ImageReconstruction/ImageReconstruction.md`를 참고한다.
+
+## 출력
+
+`output_inference.py`는 `ImageAlignment/output/{training,testing}/` 아래에 `warp1`, `warp2`, `mask1`, `mask2` 영상을 만든다. 재구성의 기본 설정은 정확히 `../../ImageAlignment/output/training`과 `../../ImageAlignment/output/testing`을 읽으므로 위 실행 순서와 디렉터리를 유지하면 복사나 symlink 없이 2단계로 연결된다. 실제 출력 경로와 checkpoint 경로는 스크립트에 고정돼 있으므로 실행 위치를 바꾸면 함께 수정해야 한다.
+
+## 확인된 제한
+
+- 포함된 checkpoint에는 `.index`와 `.meta`는 있지만 TensorFlow 변수값을 담는 `.data-*` shard가 없어 현재 Git 내용만으로 pretrained inference를 복원할 수 없다.
+- 1단계와 2단계는 하나의 명령으로 실행되지 않지만, 기본 경로를 유지하면 1단계 출력이 2단계 입력으로 바로 사용된다.
+- `constant.py`의 GPU 번호와 상대 입력 경로가 하드코딩돼 있다.
+- 이 저장소는 포함 파일의 실행 성공이나 논문 성능을 별도로 재현했다고 주장하지 않는다.
