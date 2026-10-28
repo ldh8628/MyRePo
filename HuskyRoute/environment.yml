@@ -1,0 +1,43 @@
+name: huskyroute
+channels:
+  - conda-forge
+  - robostack-humble
+dependencies:
+  - python=3.11
+  # hdl_graph_slam build (same as HDL-GRAPH-SLAM/environment.yml)
+  - cmake
+  - ninja
+  - pkg-config
+  - colcon-common-extensions
+  - ros-dev-tools
+  - ros-humble-ros-base
+  - pcl=1.15.0
+  - eigen-abi=3.4.0.100
+  - g2o=2019.11.23=h0d28170_1   # the build with the cholmod solver hdl_graph_slam links
+  - suitesparse=5.10.1
+  - gcc=14.3
+  - gxx=14.3
+  - tbb-devel           # PCL -> VTK needs it at cmake time
+  - empy=3.3.4         # ROS Humble message generation needs empy 3
+  - ros-humble-pcl-ros
+  - ros-humble-pcl-conversions
+  - ros-humble-geodesy
+  - ros-humble-geographic-msgs
+  - ros-humble-nmea-msgs
+  - ros-humble-interactive-markers
+  - ros-humble-message-filters
+  - ros-humble-tf2-ros
+  - ros-humble-tf2-geometry-msgs
+  - ros-humble-rosbag2
+  - ros-humble-rosbag2-storage-mcap
+  # Nav2 global planner on a saved map
+  - ros-humble-nav2-map-server=1.1.18   # same RoboStack build as the HDL packages (py311)
+  - ros-humble-nav2-planner=1.1.18   # same RoboStack build as the HDL packages (py311)
+  - ros-humble-nav2-smac-planner=1.1.18   # same RoboStack build as the HDL packages (py311)
+  - ros-humble-nav2-navfn-planner=1.1.18   # same RoboStack build as the HDL packages (py311)
+  - ros-humble-nav2-lifecycle-manager=1.1.18   # same RoboStack build as the HDL packages (py311)
+  - ros-humble-nav2-msgs=1.1.18   # same RoboStack build as the HDL packages (py311)
+  # map grid and web server
+  - numpy
+  - scipy
+  - pyyaml

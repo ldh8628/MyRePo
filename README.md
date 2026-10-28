@@ -1,6 +1,6 @@
 # MyRePo 프로젝트 인덱스
 
-이 저장소는 SLAM·6D pose estimation·영상 처리·패턴 인식·ROS 2와 소규모 응용 실험을 한곳에 모은 프로젝트 모음이다. 아래 표는 `scripts` 지원 디렉터리를 제외한 최상위 프로젝트 19개와 각 맞춤 README를 연결한다.
+이 저장소는 SLAM·6D pose estimation·영상 처리·패턴 인식·ROS 2와 소규모 응용 실험을 한곳에 모은 프로젝트 모음이다. 아래 표는 `scripts` 지원 디렉터리를 제외한 최상위 프로젝트 20개와 각 맞춤 README를 연결한다.
 
 > 감사 기준: 2026-08-05, `main`의 `ee7bfd7` 커밋. 각 프로젝트는 서로 독립적이며 Python·CUDA·ROS 2 등 요구 환경이 다르므로 저장소 전체를 하나의 환경에 설치하는 구조가 아니다.
 
@@ -11,6 +11,7 @@
 | [ExtrinsicCalib](ExtrinsicCalib/README.md) | 동시 녹화한 RGB-D–RGB-D 또는 LiDAR–RGB-D bag에서 표지판 없이 두 센서의 외부 파라미터와 시간차를 구하는 로컬 웹 도구입니다. | 맞춤 작성 |
 | [FoundPose](FoundPose/README.md) | DINOv2 특징과 3D template 검색으로 신규 물체의 6D pose를 추정하는 FoundPose 커스텀 구현입니다. | 맞춤 작성 |
 | [HDL-GRAPH-SLAM](HDL-GRAPH-SLAM/README.md) | ROS 2 Humble에서 LiDAR keyframe과 pose graph optimization으로 3D 지도를 만드는 runtime bundle입니다. | 맞춤 작성 |
+| [HuskyRoute](HuskyRoute/README.md) | LiDAR bag으로 hdl_graph_slam 지도를 만들고, 지도 위에 Husky를 놓아 Nav2 계획기 경로를 시험하는 로컬 웹 도구입니다. | 맞춤 작성 |
 | [ImprovedFoundPose](ImprovedFoundPose/README.md) | portable 경로와 GT 없는 추론 등 로컬 개선을 적용한 FoundPose 최소 실행 배포본입니다. | 맞춤 작성 |
 | [Intelligence_capston_opencv](Intelligence_capston_opencv/README.md) | OpenCV 영상 입출력·색공간·histogram·filtering을 독립 스크립트로 익히는 실습 모음입니다. | 이번 감사에서 맞춤 작성 |
 | [ORB3-SLAM](ORB3-SLAM/README.md) | ORB-SLAM3 core와 ROS 2 RGB-D wrapper를 담은 재현 가능한 runtime bundle입니다. | 맞춤 작성 |
