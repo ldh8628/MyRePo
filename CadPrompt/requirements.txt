@@ -1,0 +1,10 @@
+# PyTorch: pick the build for your CUDA from https://pytorch.org first if the default wheel does not fit your GPU
+torch>=2.2
+torchvision>=0.17
+ultralytics>=8.3.150
+git+https://github.com/ultralytics/CLIP.git
+open3d==0.20.0
+trimesh>=4.0
+numpy>=1.26
+pillow>=10.0
+pyyaml>=6.0
