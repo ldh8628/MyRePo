@@ -1,0 +1,9 @@
+name: cadprompt
+channels:
+  - conda-forge
+dependencies:
+  - python=3.11
+  - git
+  - pip
+  - pip:
+      - -r requirements.txt
