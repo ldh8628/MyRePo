@@ -1,0 +1,386 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Husky 경로 시험</title>
+<style>
+  :root { --bg:#f4f5f7; --panel:#fff; --ink:#1d2330; --mute:#667085; --line:#d0d5dd; --accent:#2563eb; --code:#f2f4f7;
+          --ok:#067647; --warn:#b54708; --bad:#b42318; --canvas:#e9ebef;
+          --path:#ea580c; --track:#3b82f6; --start:#0f766e; --goal:#c026d3; }
+  @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+          --bg:#11151c; --panel:#1a2029; --ink:#e6e9ef; --mute:#98a2b3; --line:#344054; --accent:#60a5fa; --code:#222935;
+          --ok:#47cd89; --warn:#fdb022; --bad:#f97066; --canvas:#0d1117; } }
+  * { box-sizing:border-box; }
+  body { margin:0; font:14px/1.45 "Malgun Gothic","Apple SD Gothic Neo","Noto Sans KR",system-ui,sans-serif; color:var(--ink);
+         background:var(--bg); display:grid; grid-template-columns:350px 1fr; height:100vh; overflow:hidden; }
+  aside { background:var(--panel); border-right:1px solid var(--line); padding:14px 16px 30px; overflow:auto; }
+  h1 { font-size:18px; margin:0 0 2px; } .sub { color:var(--mute); font-size:12px; }
+  details { border:1px solid var(--line); border-radius:10px; padding:8px 12px; margin-top:10px; }
+  details[open] { padding-bottom:12px; } summary { cursor:pointer; font-weight:700; }
+  summary .st { font-weight:400; font-size:12px; color:var(--mute); margin-left:6px; }
+  label { display:block; font-size:12px; color:var(--mute); margin:8px 0 3px; }
+  input, select { width:100%; padding:6px 8px; border:1px solid var(--line); border-radius:8px; background:var(--panel); color:var(--ink); font:inherit; }
+  input[type=checkbox] { width:auto; margin:0; }
+  label.chk { display:flex; gap:8px; align-items:flex-start; color:var(--ink); font-size:13px; margin:7px 0; cursor:pointer; }
+  .g2 { display:grid; grid-template-columns:1fr 1fr; gap:0 10px; }
+  .line { display:flex; gap:6px; } .line input, .line select { flex:1; min-width:0; } .line button { white-space:nowrap; }
+  button { padding:6px 10px; border:1px solid var(--line); border-radius:8px; background:var(--panel); color:var(--ink); font:inherit; cursor:pointer; }
+  button.primary { background:var(--accent); border-color:var(--accent); color:#fff; font-weight:600; }
+  button.on { background:var(--ink); color:var(--panel); border-color:var(--ink); }
+  button:disabled { opacity:.5; cursor:default; }
+  .btns { display:flex; gap:6px; margin-top:10px; } .btns button { flex:1; }
+  .msg { font-size:12px; margin-top:6px; color:var(--mute); white-space:pre-wrap; } .msg.bad { color:var(--bad); } .msg.good { color:var(--ok); }
+  .bar { height:7px; background:var(--code); border-radius:99px; overflow:hidden; margin:8px 0 4px; }
+  .bar i { display:block; height:100%; width:0; background:var(--accent); transition:width .4s; }
+  pre { background:var(--code); border-radius:8px; padding:8px; margin:6px 0 0; font-size:11px; overflow:auto; max-height:160px; white-space:pre-wrap; }
+  .browser { border:1px solid var(--line); border-radius:8px; margin-top:6px; max-height:180px; overflow:auto; display:none; }
+  .browser div { padding:3px 8px; cursor:pointer; font-size:13px; } .browser div:hover { background:var(--code); }
+  .browser .bag { color:var(--ok); font-weight:600; }
+  .card { border:1px solid var(--line); border-radius:10px; padding:10px 12px; margin-top:10px; }
+  .big { font-size:16px; font-weight:700; }
+  table { width:100%; border-collapse:collapse; font-size:13px; } td { padding:3px 0; } td:last-child { text-align:right; font-variant-numeric:tabular-nums; }
+  .ok { color:var(--ok); } .bad { color:var(--bad); } .warn { color:var(--warn); }
+  .badge { font-size:11px; padding:1px 8px; border-radius:99px; background:var(--code); color:var(--mute); }
+  .badge.ready { color:var(--ok); } .badge.failed { color:var(--bad); }
+  .legend span { display:inline-flex; align-items:center; gap:5px; margin-right:10px; font-size:12px; }
+  .legend i { width:16px; height:3px; display:inline-block; border-radius:2px; }
+  .help { color:var(--mute); font-size:12px; margin-top:10px; } .help b { color:var(--ink); }
+  main { position:relative; } canvas { width:100%; height:100%; display:block; cursor:crosshair; background:var(--canvas); }
+  #coord { position:absolute; right:10px; bottom:8px; background:var(--panel); opacity:.9; padding:3px 8px; border-radius:6px; font-size:12px; color:var(--mute); }
+  #empty { position:absolute; inset:0; display:flex; align-items:center; justify-content:center; color:var(--mute); padding:16px; text-align:center; }
+  @media (max-width:760px) { body { grid-template-columns:1fr; grid-template-rows:auto 70vh; height:auto; overflow:auto; } main { height:70vh; } }
+</style>
+</head>
+<body>
+<aside>
+  <h1>Husky 경로 시험</h1>
+  <div class="sub">LiDAR 녹화로 hdl_graph_slam 지도를 만들고, 그 지도에 Husky를 놓고 목표를 찍어 Nav2 계획기가 내는 경로를 봅니다. 로봇은 필요 없습니다.</div>
+
+  <details id="secMap" open>
+    <summary>① 지도 <span class="st" id="mapSt"></span></summary>
+    <label>만든 지도</label>
+    <div class="line"><select id="mapSel"></select><button id="useMap">열기</button></div>
+    <details id="secNew" style="margin-top:12px">
+      <summary>새 지도 만들기</summary>
+      <label>LiDAR bag 폴더 (rosbag2)</label>
+      <div class="line"><input id="bag" placeholder="/data/rec/lidar"><button id="browseBtn">찾기</button></div>
+      <div class="browser" id="browser"></div>
+      <div class="msg" id="bagMsg"></div>
+      <label>PointCloud2 토픽</label><select id="topic"></select>
+      <label>지도 이름 (영문·숫자·_·-)</label><input id="mapName" placeholder="lab_2026">
+      <div class="g2">
+        <div><label>바닥에서 LiDAR 높이 (m)</label><input id="sh" placeholder="비우면 자동"></div>
+        <div><label>재생 속도 (배)</label><input id="rate" value="1.0"></div>
+        <div><label>키프레임 간격 (m)</label><input id="kft" value="0.5"></div>
+        <div><label>최대 거리 (m)</label><input id="far" value="30"></div>
+      </div>
+      <div class="btns"><button class="primary" id="build">지도 만들기</button><button id="cancel" disabled>취소</button></div>
+      <div class="bar"><i id="buildBar"></i></div>
+      <div class="msg" id="buildMsg"></div>
+      <pre id="buildLog" style="display:none"></pre>
+    </details>
+    <details id="secRegrid" style="margin-top:8px">
+      <summary>격자 다시 만들기 <span class="st">SLAM 다시 안 돌림</span></summary>
+      <div class="sub" style="margin-top:6px">장애물로 볼 높이 범위나 LiDAR 높이를 바꿔 2D 격자만 다시 만듭니다.</div>
+      <div class="g2">
+        <div><label>LiDAR 높이 (m)</label><input id="rsh" placeholder="비우면 자동"></div>
+        <div></div>
+        <div><label>장애물 최저 높이 (m)</label><input id="omin" value="0.15"></div>
+        <div><label>장애물 최고 높이 (m)</label><input id="omax" value="1.2"></div>
+      </div>
+      <div class="btns"><button id="regrid">격자 다시 만들기</button></div>
+      <div class="msg" id="regridMsg"></div>
+    </details>
+  </details>
+
+  <details id="secPlan" open>
+    <summary>② 로봇·계획기 <span class="badge" id="plSt">꺼짐</span></summary>
+    <label>계획기</label>
+    <select id="planner">
+      <option value="hybrid">Smac Hybrid-A* — 차체 모양·방향을 따져 계획</option>
+      <option value="2d">Smac 2D — 격자 A*, 차체는 원으로 근사</option>
+      <option value="navfn">NavFn — Nav2 기본 (Dijkstra)</option>
+    </select>
+    <div class="g2">
+      <div><label>차체 반 길이 (m)</label><input id="hl"></div>
+      <div><label>차체 반 폭 (m)</label><input id="hw"></div>
+      <div><label>장애물 여유 반경 (m)</label><input id="infl"></div>
+      <div><label>여유 비용 감소율</label><input id="csf"></div>
+      <div class="hy"><label>최소 회전 반경 (m)</label><input id="turn"></div>
+    </div>
+    <label class="chk hy"><input type="checkbox" id="rev"> <span>후진 허용 (Reeds-Shepp)</span></label>
+    <label class="chk"><input type="checkbox" id="pref"> <span>지도 만들 때 지나간 길 선호<br><span class="sub">그 길에서 먼 칸에 비용을 조금 더 줌</span></span></label>
+    <label class="chk"><input type="checkbox" id="unk"> <span>모르는 곳(회색) 통과 허용</span></label>
+    <div class="btns"><button id="apply">적용 (계획기 다시 시작)</button></div>
+    <div class="msg" id="plMsg"></div>
+  </details>
+
+  <details open>
+    <summary>③ 경로 시험</summary>
+    <div class="btns"><button id="toolS" class="on">Husky 위치</button><button id="toolG">목표 지점</button></div>
+    <label class="chk"><input type="checkbox" id="showCost" checked> <span>계획기 비용지도 (장애물 여유) 표시</span></label>
+    <label class="chk"><input type="checkbox" id="showTrack" checked> <span>지도 만들 때 지나간 길 표시</span></label>
+    <label class="chk"><input type="checkbox" id="showFoot" checked> <span>경로 위 차체 외곽 표시</span></label>
+    <div class="btns"><button id="play">▶ 주행 미리보기</button><button id="clear">지우기</button></div>
+    <div class="card" id="result"><span class="sub">Husky 위치와 목표를 찍으면 여기에 결과가 나옵니다.</span></div>
+    <div class="card legend">
+      <span><i style="background:var(--path)"></i>계획 경로</span>
+      <span><i style="background:var(--track)"></i>지도 만들 때 지나간 길</span>
+      <span><i style="background:rgba(220,60,60,.6)"></i>장애물 여유</span>
+    </div>
+    <div class="help"><b>찍기</b>: 왼쪽 클릭 = 위치, 누른 채 끌면 그 방향이 차체 방향<br>
+      <b>이동</b>: 오른쪽 버튼(또는 Shift + 왼쪽) 끌기 · <b>확대</b>: 휠<br>
+      경로는 저장된 지도와 장애물 여유만 보고 냅니다. 사람 같은 실시간 장애물과 실제 주행 제어는 들어 있지 않습니다.</div>
+  </details>
+</aside>
+<main><canvas id="cv"></canvas><div id="empty">왼쪽에서 지도를 열거나 새로 만드세요.</div><div id="coord"></div></main>
+<script>
+const $ = id => document.getElementById(id);
+const cv = $('cv'), ctx = cv.getContext('2d');
+const css = n => getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+const esc = t => String(t).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]);
+const HUSKY = [0.495, 0.335];                       // Husky A200 body half length / width
+let M = null, mapImg = null, cost = null, costImg = null, costMap = null;
+let view = { s: 40, cx: 0, cy: 0 }, start = null, goal = null, tool = 'S', res = null, anim = null, opts = null;
+
+async function api(path, body) {
+  const r = await fetch(path, body === undefined ? {} : { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
+  const j = await r.json(); if (!r.ok) throw new Error(j.error || r.statusText); return j;
+}
+
+// ── maps ──
+async function loadMaps(select) {
+  const r = await api('api/maps'); const sel = $('mapSel'); sel.innerHTML = '';
+  if (!r.maps.length) sel.innerHTML = '<option value="">(아직 없음)</option>';
+  r.maps.forEach(m => { const o = document.createElement('option'); o.value = m.name;
+    o.textContent = `${m.name} · ${m.track_length} m 주행 · ${m.made || ''}`; sel.appendChild(o); });
+  if (select) sel.value = select; else if (r.current.name) sel.value = r.current.name;
+  if (!r.maps.length) $('secNew').open = true;
+  opts = r.current.opts; fillOpts();
+  if (r.current.name && !M) await openMap(r.current.name, false);
+}
+function fillOpts() {
+  $('planner').value = opts.planner; $('hl').value = opts.half_length; $('hw').value = opts.half_width;
+  $('infl').value = opts.inflation_radius; $('csf').value = opts.cost_scaling; $('turn').value = opts.min_turn_radius;
+  $('rev').checked = opts.reverse; $('pref').checked = opts.prefer_driven; $('unk').checked = opts.allow_unknown; hy();
+}
+function readOpts() {
+  return { planner: $('planner').value, half_length: +$('hl').value, half_width: +$('hw').value, inflation_radius: +$('infl').value,
+           cost_scaling: +$('csf').value, min_turn_radius: +$('turn').value, reverse: $('rev').checked,
+           prefer_driven: $('pref').checked, allow_unknown: $('unk').checked };
+}
+function hy() { document.querySelectorAll('.hy').forEach(e => e.style.display = $('planner').value === 'hybrid' ? '' : 'none'); }
+$('planner').onchange = hy;
+
+async function openMap(name, restart = true) {
+  if (!name) return;
+  M = await api('api/map?name=' + encodeURIComponent(name));
+  mapImg = new Image(); mapImg.src = 'data:image/png;base64,' + M.png; await mapImg.decode();
+  const g = M.info.grid;
+  $('mapSt').textContent = `${name} · 키프레임 ${g.keyframes} · ${g.track_length} m`;
+  $('rsh').value = M.info.sensor_height ?? ''; $('omin').value = (M.info.grid_opts || {}).obst_min ?? 0.15; $('omax').value = (M.info.grid_opts || {}).obst_max ?? 1.2;
+  $('empty').style.display = 'none';
+  const xs = M.track.map(p => p[0]), ys = M.track.map(p => p[1]);
+  view.cx = (Math.min(...xs) + Math.max(...xs)) / 2; view.cy = (Math.min(...ys) + Math.max(...ys)) / 2;
+  const r = cv.getBoundingClientRect();
+  view.s = 0.7 * Math.min(r.width / (Math.max(...xs) - Math.min(...xs) + 8), r.height / (Math.max(...ys) - Math.min(...ys) + 8));
+  start = goal = res = anim = null; cost = costImg = null; setTool('S'); clearResult(); fit();
+  if (restart) await applyPlanner(name);
+}
+$('useMap').onclick = () => openMap($('mapSel').value).catch(e => $('plMsg').textContent = e.message);
+
+async function applyPlanner(name) {
+  $('plMsg').className = 'msg'; $('plMsg').textContent = '계획기 시작 중…'; cost = costImg = null; draw();
+  try { const r = await api('api/use', { name: name || M.name, opts: readOpts() }); opts = r.opts; } catch (e) { $('plMsg').className = 'msg bad'; $('plMsg').textContent = e.message; }
+  pollPlanner();
+}
+$('apply').onclick = () => M && applyPlanner();
+let plTimer = null;
+async function pollPlanner() {
+  clearTimeout(plTimer);
+  const r = await api('api/planner'); const b = $('plSt');
+  b.textContent = { ready: '준비됨', starting: '시작 중', failed: '실패', stopped: '꺼짐' }[r.status]; b.className = 'badge ' + r.status;
+  if (r.status === 'ready') { $('plMsg').className = 'msg good'; $('plMsg').textContent = `${r.map} 지도로 계획기 준비됨`; loadCost(); if (start && goal) compute(); return; }
+  if (r.status === 'failed') { $('plMsg').className = 'msg bad'; $('plMsg').textContent = '계획기 실행 실패:\n' + r.log; return; }
+  if (r.status === 'starting') plTimer = setTimeout(pollPlanner, 1000);
+}
+async function loadCost() {
+  const c = await api('api/cost'); if (!c.png) { setTimeout(loadCost, 1500); return; }
+  cost = c; costImg = new Image(); costImg.src = 'data:image/png;base64,' + c.png; await costImg.decode(); draw();
+}
+
+// ── new map ──
+async function browse(path) {
+  const r = await api('api/browse?path=' + encodeURIComponent(path || '')); const b = $('browser'); b.style.display = 'block';
+  b.innerHTML = `<div data-p="${esc(r.parent)}">⬆ ${esc(r.parent)}</div>` + (r.is_bag ? `<div class="bag" data-use="${esc(r.path)}">✔ 이 폴더를 bag으로 쓰기</div>` : '') +
+    r.dirs.map(d => `<div data-p="${esc(r.path + '/' + d)}">📁 ${esc(d)}</div>`).join('');
+  b.querySelectorAll('div').forEach(e => e.onclick = () => e.dataset.use ? (b.style.display = 'none', setBag(e.dataset.use)) : browse(e.dataset.p));
+}
+$('browseBtn').onclick = () => browse($('bag').value);
+async function setBag(p) {
+  $('bag').value = p; const t = $('topic'); t.innerHTML = '';
+  try {
+    const r = await api('api/bag?path=' + encodeURIComponent(p));
+    r.clouds.forEach(c => { const o = document.createElement('option'); o.value = o.textContent = c; t.appendChild(o); });
+    const n = r.topics.find(x => x.name === r.clouds[0]);
+    $('bagMsg').className = r.clouds.length ? 'msg good' : 'msg bad';
+    $('bagMsg').textContent = r.clouds.length ? `${r.duration_s.toFixed(0)} s 녹화, ${r.clouds[0]} ${n ? n.count : ''}장` : 'PointCloud2 토픽이 없습니다';
+    if (!$('mapName').value) $('mapName').value = p.split('/').filter(Boolean).slice(-2).join('_').replace(/[^A-Za-z0-9_\-]/g, '_').slice(0, 40);
+  } catch (e) { $('bagMsg').className = 'msg bad'; $('bagMsg').textContent = e.message; }
+}
+$('bag').onchange = () => setBag($('bag').value);
+let jobId = null;
+$('build').onclick = async () => {
+  $('buildMsg').className = 'msg'; $('buildLog').style.display = 'block'; $('buildLog').textContent = '';
+  try {
+    const r = await api('api/build', { bag: $('bag').value, topic: $('topic').value, name: $('mapName').value, sensor_height: $('sh').value,
+                                       rate: +$('rate').value, kf_trans: +$('kft').value, far: +$('far').value });
+    jobId = r.id; $('build').disabled = true; $('cancel').disabled = false; history.replaceState(null, '', '?job=' + jobId); pollJob();
+  } catch (e) { $('buildMsg').className = 'msg bad'; $('buildMsg').textContent = e.message; }
+};
+$('cancel').onclick = () => jobId && api('api/cancel', { id: jobId });
+async function pollJob() {
+  let j; try { j = await api('api/job?id=' + jobId); } catch (e) { $('buildMsg').textContent = '작업을 찾을 수 없습니다 (서버를 다시 켜면 사라집니다)'; return; }
+  $('buildBar').style.width = (100 * j.progress).toFixed(0) + '%'; $('buildLog').textContent = j.log.join('\n'); $('buildLog').scrollTop = 1e9;
+  if (j.state === 'running') { $('buildMsg').textContent = j.log[j.log.length - 1] || ''; setTimeout(pollJob, 1000); return; }
+  $('build').disabled = false; $('cancel').disabled = true;
+  if (j.state === 'error') { $('buildMsg').className = 'msg bad'; $('buildMsg').textContent = '실패: ' + j.error; return; }
+  $('buildMsg').className = 'msg good'; $('buildMsg').textContent = `지도 ${j.name} 완성 (${j.result.grid.keyframes} 키프레임, ${j.result.grid.track_length} m 주행)`;
+  await loadMaps(j.name); $('secNew').open = false; openMap(j.name);
+}
+
+$('regrid').onclick = async () => {
+  if (!M) return; $('regridMsg').className = 'msg'; $('regridMsg').textContent = '만드는 중…';
+  try {
+    const r = await api('api/regrid', { name: M.name, sensor_height: $('rsh').value, obst_min: $('omin').value, obst_max: $('omax').value });
+    M = r; mapImg = new Image(); mapImg.src = 'data:image/png;base64,' + M.png; await mapImg.decode(); res = null; draw();
+    $('regridMsg').className = 'msg good'; $('regridMsg').textContent = `바닥 높이 ${r.info.grid.floor_z} m, 장애물 칸 ${r.info.grid.occupied}`;
+    pollPlanner();
+  } catch (e) { $('regridMsg').className = 'msg bad'; $('regridMsg').textContent = e.message; }
+};
+
+// ── drawing ──
+function fit() { const r = cv.getBoundingClientRect(); cv.width = r.width * devicePixelRatio; cv.height = r.height * devicePixelRatio; draw(); }
+const DPR = () => devicePixelRatio;
+const W2S = (x, y) => [cv.width / 2 + (x - view.cx) * view.s * DPR(), cv.height / 2 - (y - view.cy) * view.s * DPR()];
+const S2W = (px, py) => [view.cx + (px * DPR() - cv.width / 2) / (view.s * DPR()), view.cy - (py * DPR() - cv.height / 2) / (view.s * DPR())];
+function img(im, ox, oy, w, h, res) { const [a, b] = W2S(ox, oy + h * res), [c, d] = W2S(ox + w * res, oy); ctx.drawImage(im, a, b, c - a, d - b); }
+function poly(pts, color, w) {
+  if (!pts || pts.length < 2) return;
+  ctx.beginPath(); pts.forEach((p, i) => { const [a, b] = W2S(p[0], p[1]); i ? ctx.lineTo(a, b) : ctx.moveTo(a, b); });
+  ctx.strokeStyle = color; ctx.lineWidth = w * DPR(); ctx.stroke();
+}
+function box(x, y, yaw, hl, hw, stroke, fill, w) {
+  const c = Math.cos(yaw), s = Math.sin(yaw);
+  const pts = [[hl, hw], [hl, -hw], [-hl, -hw], [-hl, hw]].map(([u, v]) => W2S(x + u * c - v * s, y + u * s + v * c));
+  ctx.beginPath(); pts.forEach((p, i) => i ? ctx.lineTo(...p) : ctx.moveTo(...p)); ctx.closePath();
+  if (fill) { ctx.fillStyle = fill; ctx.fill(); } ctx.strokeStyle = stroke; ctx.lineWidth = (w || 1.5) * DPR(); ctx.stroke();
+}
+function arrow(x, y, yaw, color, len) {
+  const [a, b] = W2S(x, y), [c, d] = W2S(x + len * Math.cos(yaw), y + len * Math.sin(yaw));
+  ctx.strokeStyle = color; ctx.lineWidth = 2.5 * DPR(); ctx.beginPath(); ctx.moveTo(a, b); ctx.lineTo(c, d); ctx.stroke();
+  const t = Math.atan2(d - b, c - a), k = 9 * DPR();
+  ctx.beginPath(); ctx.moveTo(c, d); ctx.lineTo(c - k * Math.cos(t - 0.45), d - k * Math.sin(t - 0.45)); ctx.lineTo(c - k * Math.cos(t + 0.45), d - k * Math.sin(t + 0.45));
+  ctx.closePath(); ctx.fillStyle = color; ctx.fill();
+}
+function robot(p, color, fill) {
+  const o = opts || { half_length: 0.51, half_width: 0.355 };
+  box(p.x, p.y, p.yaw, HUSKY[0], HUSKY[1], color, fill, 2); box(p.x, p.y, p.yaw, o.half_length, o.half_width, color, null, 1); arrow(p.x, p.y, p.yaw, color, 0.8);
+}
+function draw() {
+  ctx.clearRect(0, 0, cv.width, cv.height); if (!M) return;
+  ctx.imageSmoothingEnabled = false;
+  img(mapImg, M.ox, M.oy, M.w, M.h, M.res);
+  if ($('showCost').checked && costImg) img(costImg, cost.ox, cost.oy, cost.w, cost.h, cost.res);
+  if ($('showTrack').checked) poly(M.track, 'rgba(59,130,246,.5)', 3);
+  if (res && res.path) {
+    const o = opts || { half_length: 0.51, half_width: 0.355 };
+    if ($('showFoot').checked) {
+      let acc = 0; for (let i = 1; i < res.path.length; i++) {
+        acc += Math.hypot(res.path[i][0] - res.path[i - 1][0], res.path[i][1] - res.path[i - 1][1]);
+        if (acc >= 0.6) { acc = 0; const p = res.path[i]; box(p[0], p[1], p[2], o.half_length, o.half_width, 'rgba(0,0,0,.25)', null, 1); }
+      }
+    }
+    poly(res.path, css('--path'), 3.5);
+  }
+  if (start) robot(start, css('--start'), 'rgba(15,118,110,.25)');
+  if (goal) { arrow(goal.x, goal.y, goal.yaw, css('--goal'), 0.8); const [a, b] = W2S(goal.x, goal.y); ctx.fillStyle = css('--goal'); ctx.beginPath(); ctx.arc(a, b, 5 * DPR(), 0, 7); ctx.fill(); }
+  if (anim) box(anim[0], anim[1], anim[2], HUSKY[0], HUSKY[1], '#111', 'rgba(17,17,17,.35)', 2);
+}
+
+// ── route ──
+function clearResult() { $('result').innerHTML = '<span class="sub">Husky 위치와 목표를 찍으면 여기에 결과가 나옵니다.</span>'; }
+async function compute() {
+  if (!start || !goal || !M) return; anim = null;
+  $('result').innerHTML = '<span class="sub">계산 중…</span>';
+  const deg = p => `${p.x.toFixed(2)},${p.y.toFixed(2)},${(p.yaw * 180 / Math.PI).toFixed(0)}`;
+  history.replaceState(null, '', `${location.pathname}${location.search}#map=${encodeURIComponent(M.name)}&s=${deg(start)}&g=${deg(goal)}`);
+  res = await api('api/route', { sx: start.x, sy: start.y, syaw: start.yaw, gx: goal.x, gy: goal.y, gyaw: goal.yaw });
+  const pl = { hybrid: 'Smac Hybrid-A*', '2d': 'Smac 2D', navfn: 'NavFn' }[(opts || {}).planner] || '';
+  if (!res.ok) { $('result').innerHTML = `<div class="big bad">경로 없음</div><div class="msg bad">${esc(res.why)}</div>
+    <table><tr><td>직선 거리</td><td>${res.straight ?? '-'} m</td></tr><tr><td>계산 시간</td><td>${res.ms ?? '-'} ms</td></tr></table>`; draw(); return; }
+  const near = res.max_cost == null ? '-' : res.max_cost >= 253 ? '<span class="bad">차체가 장애물에 닿음</span>' : res.max_cost >= 128 ? '<span class="warn">장애물에 가까움</span>' : '<span class="ok">여유 있음</span>';
+  $('result').innerHTML = `<div class="big" style="color:var(--path)">${pl} 경로</div>
+    <table>
+      <tr><td>경로 길이</td><td><b>${res.length} m</b></td></tr>
+      <tr><td>직선 거리</td><td>${res.straight} m</td></tr>
+      <tr><td>돌아가는 비율</td><td>${(res.length / Math.max(res.straight, 0.01)).toFixed(2)} 배</td></tr>
+      ${res.reverse > 0 ? `<tr><td>후진 구간</td><td>${res.reverse} m</td></tr>` : ''}
+      <tr><td>경로 위 가장 높은 비용</td><td>${res.max_cost ?? '-'} / 254 · ${near}</td></tr>
+      <tr><td>0.3 m/s로 걸리는 시간</td><td>${(res.length / 0.3).toFixed(0)} s</td></tr>
+      <tr><td>계산 시간</td><td>${res.ms} ms</td></tr>
+    </table>`;
+  draw();
+}
+
+let drag = null;
+cv.addEventListener('contextmenu', e => e.preventDefault());
+cv.addEventListener('mousedown', e => {
+  if (!M) return;
+  if (e.button === 2 || e.button === 1 || e.shiftKey) { drag = { pan: true, x: e.offsetX, y: e.offsetY, cx: view.cx, cy: view.cy }; return; }
+  const [x, y] = S2W(e.offsetX, e.offsetY); const p = { x, y, yaw: tool === 'S' ? (start ? start.yaw : 0) : (goal ? goal.yaw : 0) };
+  if (tool === 'S') start = p; else goal = p; drag = { set: true, x0: e.offsetX, y0: e.offsetY, p }; res = null; draw();
+});
+cv.addEventListener('mousemove', e => {
+  if (M) { const [x, y] = S2W(e.offsetX, e.offsetY); $('coord').textContent = `x ${x.toFixed(2)}  y ${y.toFixed(2)} m`; }
+  if (!drag) return;
+  if (drag.pan) { view.cx = drag.cx - (e.offsetX - drag.x) / view.s; view.cy = drag.cy + (e.offsetY - drag.y) / view.s; draw(); return; }
+  if (Math.hypot(e.offsetX - drag.x0, e.offsetY - drag.y0) > 6) { drag.p.yaw = Math.atan2(-(e.offsetY - drag.y0), e.offsetX - drag.x0); draw(); }
+});
+window.addEventListener('mouseup', () => { if (drag && drag.set) { if (tool === 'S' && !goal) setTool('G'); compute(); } drag = null; });
+cv.addEventListener('wheel', e => {
+  e.preventDefault(); if (!M) return; const [x, y] = S2W(e.offsetX, e.offsetY); view.s = Math.min(400, Math.max(3, view.s * Math.exp(-e.deltaY * 0.0015)));
+  const [x2, y2] = S2W(e.offsetX, e.offsetY); view.cx += x - x2; view.cy += y - y2; draw();
+}, { passive: false });
+function setTool(t) { tool = t; $('toolS').classList.toggle('on', t === 'S'); $('toolG').classList.toggle('on', t === 'G'); }
+$('toolS').onclick = () => setTool('S'); $('toolG').onclick = () => setTool('G');
+['showCost', 'showTrack', 'showFoot'].forEach(id => $(id).onchange = draw);
+$('clear').onclick = () => { start = goal = res = anim = null; setTool('S'); clearResult(); draw(); };
+$('play').onclick = () => {
+  if (!res || !res.path) return; const P = res.path, seg = [0];
+  for (let i = 1; i < P.length; i++) seg.push(seg[i - 1] + Math.hypot(P[i][0] - P[i - 1][0], P[i][1] - P[i - 1][1]));
+  const speed = 0.3 * 4, t0 = performance.now();                    // 0.3 m/s × 4배속
+  (function step(now) {
+    const d = (now - t0) / 1000 * speed; let i = seg.findIndex(v => v >= d); if (i < 0) { anim = null; draw(); return; }
+    i = Math.max(i, 1); const f = (d - seg[i - 1]) / Math.max(seg[i] - seg[i - 1], 1e-6);
+    anim = [P[i - 1][0] + f * (P[i][0] - P[i - 1][0]), P[i - 1][1] + f * (P[i][1] - P[i - 1][1]), P[i][2]]; draw(); requestAnimationFrame(step);
+  })(t0);
+};
+window.addEventListener('resize', fit);
+matchMedia('(prefers-color-scheme: dark)').addEventListener('change', draw);
+
+(async () => {
+  fit(); await loadMaps(); pollPlanner();
+  // 주소로 같은 장면을 다시 열 수 있다: #map=이름&s=x,y,방향(도)&g=x,y,방향
+  const h = new URLSearchParams(location.hash.slice(1)), pose = v => { const [x, y, d] = v.split(',').map(Number); return { x, y, yaw: (d || 0) * Math.PI / 180 }; };
+  if (h.get('map') && (!M || M.name !== h.get('map'))) { $('mapSel').value = h.get('map'); await openMap(h.get('map')); }
+  if (M && h.get('s')) start = pose(h.get('s'));
+  if (M && h.get('g')) { goal = pose(h.get('g')); setTool('G'); }
+  draw();
+  const job = new URLSearchParams(location.search).get('job');
+  if (job) { jobId = job; $('secNew').open = true; $('buildLog').style.display = 'block'; $('build').disabled = true; $('cancel').disabled = false; pollJob(); }
+})();
+</script>
+</body>
+</html>
